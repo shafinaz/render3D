@@ -1,5 +1,8 @@
 <h2>Simple2 Project</h2>
-Simple2 is a program created to render a 3D object using coordinates (vertices and edges). In this stage, user can add coordinates of vertices (mainwindow.cpp : 103) along with edges connection (mainwindow.cpp : 112). The program will display the outcome respectively.
+Simple2 is a program created to render a 3D object using coordinates (vertices and edges). In this stage, user can add vertex, edges (into the data/object.txt file) and the program will display the outcome respectively. Scale is limited from -4 to 4.
+
+Sample outcome:
+
 
 <h2>Dependencies</h2>
 <p>QT version 6/p>
