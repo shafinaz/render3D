@@ -63,7 +63,7 @@ class graph : public QGraphicsView
     Q_OBJECT
 
 public:
-    graph(QWidget *parent = nullptr);
+    graph(QGraphicsView *view, QWidget *parent = nullptr);
     void addVertex(int x, int y);
     void addEdge(vertex *v1, vertex *v2);
     QList<vertex*> vertices() const;
@@ -71,7 +71,6 @@ public:
 
 private:
     QGraphicsScene *scene;
-    void setupScene();
     void drawAxis();
     QList<vertex*> vertexList;
     QList<edge*> edgeList;

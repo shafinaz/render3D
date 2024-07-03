@@ -1,30 +1,18 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-
+#include <qDebug>
 /*
  * Class : graph
  * Member : graph
  * Description : This method is a constructor for class graph.
  */
-graph::graph(QWidget *parent): QGraphicsView(parent), scene(new QGraphicsScene(this))
+graph::graph(QGraphicsView *view, QWidget *parent): QGraphicsView(parent), scene(new QGraphicsScene(this))
 {
-    setupScene();
-    drawAxis();
-}
 
-/*
- * Class : graph
- * Member : setupScene
- * Description : This method defines the size of the scene where elements will be projected.
- */
-void graph::setupScene()
-{
-    scene->setSceneRect(-330.5, -235.5, 661, 471);
-    setScene(scene);
-    setViewportUpdateMode(BoundingRectViewportUpdate);
-    setRenderHint(QPainter::Antialiasing);
-    setTransformationAnchor(AnchorUnderMouse);
-    setMinimumSize(400, 400);
+    QRectF viewRect = view->rect();
+    view->setScene(scene);
+    scene->setSceneRect(-viewRect.width() / 2.0, -viewRect.height() / 2.0, viewRect.width(), viewRect.height());
+    drawAxis();
 }
 
 /*
@@ -34,15 +22,49 @@ void graph::setupScene()
  */
 void graph::drawAxis()
 {
-    QGraphicsLineItem *xAxis = new QGraphicsLineItem(-330.5, 0, 330.5, 0);  // X axis
-    QGraphicsLineItem *yAxis = new QGraphicsLineItem(0, -235.5, 0, 235.5);  // Y axis
+    qreal halfW = scene->sceneRect().width() / 2.0;
+    qreal halfH = scene->sceneRect().height() / 2.0;
+
+    QGraphicsLineItem *xAxis = new QGraphicsLineItem(-halfW, 0, halfW, 0);  // X axis
+    QGraphicsLineItem *yAxis = new QGraphicsLineItem(0, -halfH, 0, halfH);  // Y axis
+
+    qreal intervalX = rect().width()/10;
+    qreal intervalY = rect().height()/10;
 
     QPen axisPen(Qt::white);  // Pen for axis lines (black color)
     xAxis->setPen(axisPen);
     yAxis->setPen(axisPen);
 
+    QPen scalePen(Qt::white);
+    QFont labelFont("Arial", 8);
+
     scene->addItem(xAxis);
     scene->addItem(yAxis);
+
+    for (int i = 1; i <= 10; ++i) {
+        // X axis scale marks
+        QGraphicsLineItem *xScale = new QGraphicsLineItem(-halfW + i * intervalX, -5, -halfW + i * intervalX, 5);
+        xScale->setPen(scalePen);
+        scene->addItem(xScale);
+
+        // X axis labels
+        QGraphicsTextItem *xLabel = new QGraphicsTextItem(QString::number(i));
+        xLabel->setFont(labelFont);
+        xLabel->setPos(-halfW + i * intervalX - 5, 10);
+        scene->addItem(xLabel);
+
+        // Y axis scale marks
+        QGraphicsLineItem *yScale = new QGraphicsLineItem(-5, -halfH + i * intervalY, 5, -halfH + i * intervalY);
+        yScale->setPen(scalePen);
+        scene->addItem(yScale);
+
+        // Y axis labels
+        QGraphicsTextItem *yLabel = new QGraphicsTextItem(QString::number(i));
+        yLabel->setFont(labelFont);
+        yLabel->setPos(-15, -halfH + i * intervalY - 5);
+        scene->addItem(yLabel);
+    }
+
 }
 
 /*
@@ -149,10 +171,10 @@ void edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //scene = new graph(this);
-    graphView = new graph(this);
 
-    setCentralWidget(graphView);
+    QGraphicsView *uiGraphicsView = ui->graphicsView;
+
+    graphView = new graph(uiGraphicsView);
 
     //Create vertices
     v1 = new vertex(50, 50);
