@@ -1,5 +1,5 @@
 <h2>Simple2 Project</h2>
-<p>Simple2 is a program created to render a 3D object using coordinates (vertices and edges). In this stage, user can add vertex, edges (into the data/object.txt file) and the program will display the outcome respectively. Scale is limited from -4 to 4.</p>
+<p>Simple2 is a program created to render a 3D object using coordinates (vertices and edges). In this stage, user can add vertex, edges (into the object.txt file) and the program will display the outcome respectively. Scale is limited from -4 to 4.</p>
 
 <p>Sample outcome:</p>
 <img width="639" alt="sample" src="https://github.com/shafinaz/render3D/assets/7930895/caf5f1d4-67c9-446d-8a38-2a90b06f8e62">
