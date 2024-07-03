@@ -10,6 +10,11 @@
 #include <QGraphicsWidget>
 #include <QGraphicsLineItem>
 #include <QPainter>
+#include <QFile>
+#include <QTextStream>
+
+#define scaleX 64 //640/10
+#define scaleY 48 //480/10
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -85,18 +90,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr, const QString &filename = QString());
     ~MainWindow();
 
 private:
     Ui::MainWindow *ui;
     graph *graphView;
-    vertex *v1;
-    vertex *v2;
-    vertex *v3;
-    edge *e1;
-    edge *e2;
-    edge *e3;
+    void parseGraphFile(const QString &filename);
 };
 
 #endif // MAINWINDOW_H

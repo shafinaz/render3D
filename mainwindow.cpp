@@ -42,13 +42,14 @@ void graph::drawAxis()
     scene->addItem(yAxis);
 
     for (int i = 1; i <= 10; ++i) {
+        int j = i - 5;
         // X axis scale marks
         QGraphicsLineItem *xScale = new QGraphicsLineItem(-halfW + i * intervalX, -5, -halfW + i * intervalX, 5);
         xScale->setPen(scalePen);
         scene->addItem(xScale);
 
         // X axis labels
-        QGraphicsTextItem *xLabel = new QGraphicsTextItem(QString::number(i));
+        QGraphicsTextItem *xLabel = new QGraphicsTextItem(QString::number(j));
         xLabel->setFont(labelFont);
         xLabel->setPos(-halfW + i * intervalX - 5, 10);
         scene->addItem(xLabel);
@@ -59,7 +60,8 @@ void graph::drawAxis()
         scene->addItem(yScale);
 
         // Y axis labels
-        QGraphicsTextItem *yLabel = new QGraphicsTextItem(QString::number(i));
+        j = -j;
+        QGraphicsTextItem *yLabel = new QGraphicsTextItem(QString::number(j));
         yLabel->setFont(labelFont);
         yLabel->setPos(-15, -halfH + i * intervalY - 5);
         scene->addItem(yLabel);
@@ -163,12 +165,61 @@ void edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->drawLine(line());
 }
 
+void MainWindow::parseGraphFile(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+
+    QTextStream in(&file);
+    QString line = in.readLine();
+
+    // Read total vertices and edges
+    QStringList totals = line.split(',');
+    int totalVertices = totals[0].toInt();
+    int totalEdges = totals[1].toInt();
+
+    QMap<int, vertex*> verticesMap;
+
+    // Read vertex information
+    for (int i = 0; i < totalVertices; ++i) {
+        line = in.readLine();
+        QStringList vertexData = line.split(',');
+        int index = vertexData[0].toInt();
+        float x = vertexData[1].toFloat();
+        float y = vertexData[2].toFloat();
+
+        x *= scaleX;
+        y *= scaleY;
+
+        vertex *v = new vertex(x, y);
+        verticesMap.insert(index, v);
+        graphView->addVertex(x, y);
+    }
+
+    // Read edge information
+    for (int i = 0; i < totalEdges; ++i) {
+        line = in.readLine();
+        QStringList edgeData = line.split(',');
+        int vertexIndex1 = edgeData[0].toInt();
+        int vertexIndex2 = edgeData[1].toInt();
+
+        vertex *v1 = verticesMap.value(vertexIndex1);
+        vertex *v2 = verticesMap.value(vertexIndex2);
+
+        graphView->addEdge(v1, v2);
+    }
+
+    file.close();
+}
+
 /*
  * Class : MainWindow
  * Member : MainWindow
  * Description : This method is a constructor for class MainWindow.
  */
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent, const QString &filename) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -176,19 +227,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     graphView = new graph(uiGraphicsView);
 
-    //Create vertices
-    v1 = new vertex(50, 50);
-    v2 = new vertex(150, 150);
-    v3 = new vertex(100, 150);
-
-    graphView->addVertex(50, 50);
-    graphView->addVertex(150, 150);
-    graphView->addVertex(100, 150);
-
-    // Add edges
-    graphView->addEdge(v1, v3);
-    graphView->addEdge(v2, v3);
-    graphView->addEdge(v1, v2);
+    // Parse graph data from file if filename is provided
+    if (!filename.isEmpty()) {
+        parseGraphFile(filename);
+    }
 }
 
 /*
