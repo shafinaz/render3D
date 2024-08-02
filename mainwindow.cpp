@@ -12,6 +12,9 @@ graph::graph(QGraphicsView *view, QWidget *parent): QGraphicsView(parent), scene
     QRectF viewRect = view->rect();
     view->setScene(scene);
     scene->setSceneRect(-viewRect.width() / 2.0, -viewRect.height() / 2.0, viewRect.width(), viewRect.height());
+    QTransform transform;
+    transform.scale(1, -1); // Invert the y-axis
+    view->setTransform(transform);
     drawAxis();
 }
 
@@ -28,43 +31,65 @@ void graph::drawAxis()
     QGraphicsLineItem *xAxis = new QGraphicsLineItem(-halfW, 0, halfW, 0);  // X axis
     QGraphicsLineItem *yAxis = new QGraphicsLineItem(0, -halfH, 0, halfH);  // Y axis
 
-    qreal intervalX = rect().width()/10;
-    qreal intervalY = rect().height()/10;
+    qreal intervalX = scene->sceneRect().width() / 10;
+    qreal intervalY = scene->sceneRect().height() / 10;
 
-    QPen axisPen(Qt::white);  // Pen for axis lines (black color)
+    QPen axisPen(Qt::white);
     xAxis->setPen(axisPen);
     yAxis->setPen(axisPen);
 
     QPen scalePen(Qt::white);
-    QFont labelFont("Arial", 8);
+    QFont labelFont("Arial", 10);
 
     scene->addItem(xAxis);
     scene->addItem(yAxis);
 
-    for (int i = 1; i <= 10; ++i) {
-        int j = i - 5;
-        // X axis scale marks
-        QGraphicsLineItem *xScale = new QGraphicsLineItem(-halfW + i * intervalX, -5, -halfW + i * intervalX, 5);
+    for(qreal x = -halfW; x <= halfW; x += intervalX)
+    {
+        //add scale marks
+        QGraphicsLineItem *xScale = new QGraphicsLineItem(x, -5, x, 5);
         xScale->setPen(scalePen);
         scene->addItem(xScale);
 
-        // X axis labels
-        QGraphicsTextItem *xLabel = new QGraphicsTextItem(QString::number(j));
+        // Calculate label value for range -5 to 5
+        qreal labelValue = (x / intervalX) * 5.0 / (halfW / intervalX);
+
+        //create labels
+        QGraphicsTextItem *xLabel = new QGraphicsTextItem(QString::number(labelValue));
         xLabel->setFont(labelFont);
-        xLabel->setPos(-halfW + i * intervalX - 5, 10);
+        xLabel->setPos(x, 5);
+
+        //invert
+        QTransform inverseTransform;
+        inverseTransform.scale(1, -1);
+        xLabel->setTransform(inverseTransform);
+
         scene->addItem(xLabel);
 
-        // Y axis scale marks
-        QGraphicsLineItem *yScale = new QGraphicsLineItem(-5, -halfH + i * intervalY, 5, -halfH + i * intervalY);
+    }
+
+    for(qreal y = -halfH; y <= halfH; y += intervalY)
+    {
+        //add scale marks
+        QGraphicsLineItem *yScale = new QGraphicsLineItem(-5, y, 5, y);
         yScale->setPen(scalePen);
         scene->addItem(yScale);
 
-        // Y axis labels
-        j = -j;
-        QGraphicsTextItem *yLabel = new QGraphicsTextItem(QString::number(j));
+        // Calculate label value for range -5 to 5
+        qreal labelValue = (y / intervalY) * 5.0 / (halfH / intervalY);
+
+        //create labels
+        QGraphicsTextItem *yLabel = new QGraphicsTextItem(QString::number(labelValue));
         yLabel->setFont(labelFont);
-        yLabel->setPos(-15, -halfH + i * intervalY - 5);
+        yLabel->setPos(5, y);
+
+        //invert
+        QTransform inverseTransform;
+        inverseTransform.scale(1, -1);
+        yLabel->setTransform(inverseTransform);
+
         scene->addItem(yLabel);
+
     }
 
 }
@@ -118,10 +143,9 @@ void graph::addEdge(vertex *v1, vertex *v2)
  * Member : vertex
  * Description : This method is a constructor for class vertex.
  */
-vertex::vertex(qreal x, qreal y)
-    : QGraphicsEllipseItem(x, y, 7, 5)
+vertex::vertex(qreal x, qreal y): QGraphicsEllipseItem(x, y, 10, 5)
 {
-    setBrush(Qt::blue); // Set brush color
+    setBrush(Qt::white); // Set brush color
     setPen(QPen(Qt::black)); // Set outline pen
     newPos = QPointF(x, y);
     setZValue(-1);
@@ -180,7 +204,7 @@ void MainWindow::parseGraphFile(const QString &filename)
     int totalVertices = totals[0].toInt();
     int totalEdges = totals[1].toInt();
 
-    QMap<int, vertex*> verticesMap;
+    QMap<int, vertex*> verticesMap; //each vertex will be indexed
 
     // Read vertex information
     for (int i = 0; i < totalVertices; ++i) {
@@ -190,7 +214,7 @@ void MainWindow::parseGraphFile(const QString &filename)
         float x = vertexData[1].toFloat();
         float y = vertexData[2].toFloat();
 
-        x *= scaleX;
+        x *= scaleX; //value of x * 640 (pixel) / 10 (scale)
         y *= scaleY;
 
         vertex *v = new vertex(x, y);
@@ -231,6 +255,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &filename) : QMainWindow(p
     if (!filename.isEmpty()) {
         parseGraphFile(filename);
     }
+
 }
 
 /*
