@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    MainWindow w(nullptr, filename);
+    //MainWindow w(nullptr, filename);
     w.show();
     return a.exec();
 }
